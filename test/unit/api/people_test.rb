@@ -148,4 +148,61 @@ class PeopleTest < ActiveSupport::TestCase
     get "/api/v1/people/#{some_person.id}/permissions?#{params.to_query}"
     assert_equal 403, last_response.status
   end
+
+  should 'not update another person' do
+    person = fast_create(Person, :environment_id => environment.id)
+    post "/api/v1/people/#{person.id}?#{params.to_query}"
+    assert_equal 403, last_response.status
+  end
+
+  should 'update yourself' do
+    another_name = 'Another Name'
+    params[:person] = {}
+    params[:person][:name] = another_name
+    assert_not_equal another_name, person.name
+    post "/api/v1/people/#{person.id}?#{params.to_query}"
+    person.reload
+    assert_equal another_name, person.name
+  end
+
+  should 'display public custom fields' do
+    CustomField.create!(:name => "Custom Blog", :format => "string", :customized_type => "Person", :active => true, :environment => Environment.default)
+    some_person = create_user('some-person').person
+    some_person.custom_values = { "Custom Blog" => { "value" => "www.blog.org", "public" => "true"} }
+    some_person.save!
+
+    get "/api/v1/people/#{some_person.id}?#{params.to_query}"
+    json = JSON.parse(last_response.body)
+    assert json['person']['additional_data'].has_key?('Custom Blog')
+    assert_equal "www.blog.org", json['person']['additional_data']['Custom Blog']
+  end
+
+  should 'not display non-public custom fields' do
+    CustomField.create!(:name => "Custom Blog", :format => "string", :customized_type => "Person", :active => true, :environment => Environment.default)
+    some_person = create_user('some-person').person
+    some_person.custom_values = { "Custom Blog" => { "value" => "www.blog.org", "public" => "0"} }
+    some_person.save!
+
+    get "/api/v1/people/#{some_person.id}?#{params.to_query}"
+    json = JSON.parse(last_response.body)
+    assert_equal json['person']['additional_data'], {}
+  end
+
+  should 'display non-public custom fields to friend' do
+    CustomField.create!(:name => "Custom Blog", :format => "string", :customized_type => "Person", :active => true, :environment => Environment.default)
+    some_person = create_user('some-person').person
+    some_person.custom_values = { "Custom Blog" => { "value" => "www.blog.org", "public" => "0"} }
+    some_person.save!
+
+    f = Friendship.new
+    f.friend = some_person
+    f.person = person
+    f.save!
+
+    get "/api/v1/people/#{some_person.id}?#{params.to_query}"
+    json = JSON.parse(last_response.body)
+    assert json['person']['additional_data'].has_key?("Custom Blog")
+    assert_equal "www.blog.org", json['person']['additional_data']['Custom Blog']
+  end
+
 end

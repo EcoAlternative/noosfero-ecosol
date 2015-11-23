@@ -18,20 +18,20 @@ module Noosfero
             article = find_article(environment.articles, params[:id])
             comments = select_filtered_collection_of(article, :comments, params)
 
-            present comments, :with => Entities::Comment
+            present comments, :with => Entities::Comment, :current_person => current_person
           end
 
           get ":id/comments/:comment_id" do
             article = find_article(environment.articles, params[:id])
-            present article.comments.find(params[:comment_id]), :with => Entities::Comment
+            present article.comments.find(params[:comment_id]), :with => Entities::Comment, :current_person => current_person
           end
 
           # Example Request:
           #  POST api/v1/articles/12/comments?private_token=2298743290432&body=new comment&title=New
           post ":id/comments" do
             article = find_article(environment.articles, params[:id])
-            options = params.select { |key,v| !['id','private_token'].include?(key) }.merge(:author => current_person)
-            present article.comments.create(options), :with => Entities::Comment
+            options = params.select { |key,v| !['id','private_token'].include?(key) }.merge(:author => current_person, :source => article)
+            present Comment.create(options), :with => Entities::Comment, :current_person => current_person
           end
         end
 
