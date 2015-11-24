@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby
+
+require_relative '../config/environment'
+
+def create_category attributes
+  return unless attributes.present?
+
+  category = attributes['record']
+  unless category
+    parent = create_category $categories[attributes['parent_id']]
+    name = if Category.where(name: attributes['title']).first then attributes['description'] else attributes['title'] end
+    begin
+      category = Category.create! environment: $environment, name: name, parent: parent
+    rescue => e
+      puts "Error \"#{e.message}\" on #{attributes.inspect}"
+      exit 1
+    end
+    attributes['record'] = category
+  end
+  category
+end
+
+def create_enterprise attributes
+  enterprise = Enterprise.create! name: attributes['title'],
+    created_at: Time.zone.parse(attributes['created_at_gmt']),
+    lat: attributes['lat'], lng: attributes['lng'],
+    description: attributes['description'],
+    address: attributes['address'],
+    contact_phone: attributes['phone'],
+    contact_email: attributes['email'],
+    organization_website: attributes['website']
+
+  enterprise.categories = attributes['categories'].map{ |id| $categories[id]['record'] }
+end
+
+Categories = JSON.parse File.read ARGV[0]
+Enterprises = JSON.parse File.read ARGV[1]
+
+$categories = {}
+Categories.each{ |category| $categories[category['id'].to_i] = category }
+
+$environment = Environment.default
+
+Time.zone = 'UTC'
+
+$categories.each do |id, attributes|
+  pp create_category attributes
+end
+Enterprises.each do |attributes|
+  #pp create_enterprise attributes
+end
+
