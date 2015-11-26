@@ -20,23 +20,47 @@ def create_category attributes
   category
 end
 
+$categories = {}
+
 def create_enterprise attributes
-  enterprise = Enterprise.create! name: attributes['title'],
-    created_at: Time.zone.parse(attributes['created_at_gmt']),
+  enterprise = Enterprise.new name: attributes['title'],
+    identifier: attributes['title'].to_slug,
     lat: attributes['lat'], lng: attributes['lng'],
     description: attributes['description'],
     address: attributes['address'],
-    contact_phone: attributes['phone'],
-    contact_email: attributes['email'],
-    organization_website: attributes['website']
+    contact_phone: attributes['phone']
 
-  enterprise.categories = attributes['categories'].map{ |id| $categories[id]['record'] }
+  p attributes['email']
+  enterprise.organization_website = attributes['website']
+  enterprise.contact_email = attributes['email'].try(:strip)
+
+  enterprise.created_at = Time.zone.parse(attributes['created_at_gmt'])
+#  p "attributes"
+#  pp attributes
+#  p "categories"
+
+
+  if enterprise.valid?
+    enterprise.save!
+
+    enterprise.categories = attributes['categories'].map{ |id| 
+      if $categories[id.to_i] != nil
+        return $categories[id.to_i]['record']
+      else 
+        puts "Error category not found: #{id}"
+        return nil
+      end 
+    }
+    return enterprise
+  else
+    p "Could not insert enterprise: " + attributes['title'] 
+    return nil
+  end
 end
 
 Categories = JSON.parse File.read ARGV[0]
 Enterprises = JSON.parse File.read ARGV[1]
 
-$categories = {}
 Categories.each{ |category| $categories[category['id'].to_i] = category }
 
 $environment = Environment.default
@@ -47,6 +71,6 @@ $categories.each do |id, attributes|
   pp create_category attributes
 end
 Enterprises.each do |attributes|
-  #pp create_enterprise attributes
+  create_enterprise attributes
 end
 
