@@ -10,7 +10,9 @@ def create_category attributes
     parent = create_category $categories[attributes['parent_id']]
     name = if Category.where(name: attributes['title']).first then attributes['description'] else attributes['title'] end
     begin
-      category = Category.create! environment: $environment, name: name, parent: parent
+      category = Category.new environment: $environment, name: name, parent: parent
+      category[:id] = attributes['id'].to_i
+      category.save!
     rescue => e
       puts "Error \"#{e.message}\" on #{attributes.inspect}"
       exit 1
@@ -29,10 +31,17 @@ def create_enterprise attributes
     description: attributes['description'],
     address: attributes['address'],
     contact_phone: attributes['phone']
+    
+  enterprise[:id] =  attributes['id'].to_i
 
-  p attributes['email']
+  #p attributes['email']
   enterprise.organization_website = attributes['website']
   enterprise.contact_email = attributes['email'].try(:strip)
+  enterprise.contact_person = attributes['contact_person_name']
+  enterprise.city = attributes['city']
+  enterprise.zip_code = attributes['zip_code']
+  
+
 
   enterprise.created_at = Time.zone.parse(attributes['created_at_gmt'])
 #  p "attributes"
@@ -41,19 +50,30 @@ def create_enterprise attributes
 
 
   if enterprise.valid?
-    enterprise.save!
+    enterprise.save
 
-    enterprise.categories = attributes['categories'].map{ |id| 
-      if $categories[id.to_i] != nil
-        return $categories[id.to_i]['record']
-      else 
-        puts "Error category not found: #{id}"
-        return nil
-      end 
-    }
-    return enterprise
+    if enterprise.errors.count == 0
+
+      if attributes['hits'] != nil and !attributes['hits'].empty?
+        enterprise.home_page.hits = attributes['hits'].to_i
+      end
+
+      enterprise.categories = attributes['categories'].map{ |id| 
+        if $categories[id.to_i] != nil
+          return $categories[id.to_i]['record']
+        else 
+          puts "Error category not found: #{id} (enterprise: #{attributes['title']})"
+          return nil
+        end 
+      }
+      return enterprise
+
+
+    else
+      p "Could not insert enterprise: " + attributes['title'] + ". Errors: " + enterprise.errors.to_json
+    end
   else
-    p "Could not insert enterprise: " + attributes['title'] 
+    p "Could not insert enterprise: " + attributes['title'] + ". Errors: " + enterprise.errors.to_json
     return nil
   end
 end
@@ -68,7 +88,7 @@ $environment = Environment.default
 Time.zone = 'UTC'
 
 $categories.each do |id, attributes|
-  pp create_category attributes
+  create_category attributes
 end
 Enterprises.each do |attributes|
   create_enterprise attributes
