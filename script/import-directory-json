@@ -2,6 +2,16 @@
 
 require_relative '../config/environment'
 
+require 'action_controller'
+#require 'action_controller/test_process.rb'
+
+class UploadedData
+  attr_accessor :path, :content_type, :size
+  def original_filename
+    File.basename self.path
+  end
+end
+
 def create_category attributes
   return unless attributes.present?
 
@@ -59,16 +69,44 @@ def create_enterprise attributes
 	enterprise.home_page.save
       end
 
+      #import avatar
+      avatar = attributes['avatar']
+      if !avatar.empty?
+        m_avatar = /\/\/(?<site>[^\/]+)(?<path>\/.*$)/.match(avatar)
+
+        #download avatar
+        Net::HTTP.start(m_avatar[:site]) do |http|
+          resp = http.get(m_avatar[:path])
+
+          m_filename = /\/(?<filename>[^\/]*)$/.match(m_avatar[:path])
+          filename = 'download/'+m_filename[:filename]
+          open(filename, "wb") { |file| file.write(resp.body) }
+          mimetype = `file -ib #{filename}`.gsub(/\n/,"")
+
+          u = UploadedData.new
+          u.size = resp.body.size
+          u.path = filename
+          u.content_type = mimetype
+
+          im = Image.new
+          #im.uploaded_data = ActionController::TestUploadedFile.new(filename, mimetype)
+          im.uploaded_data = u
+          im.save
+          enterprise.image = im
+          enterprise.save
+
+        end
+      end
+
       enterprise.categories = attributes['categories'].map{ |id| 
         if $categories[id.to_i] != nil
           return $categories[id.to_i]['record']
         else 
           puts "Error category not found: #{id} (enterprise: #{attributes['title']})"
-          return nil
         end 
       }
-      return enterprise
 
+      return enterprise
 
     else
       p "Could not insert enterprise: " + attributes['title'] + ". Errors: " + enterprise.errors.to_json
@@ -92,6 +130,9 @@ $categories.each do |id, attributes|
   create_category attributes
 end
 Enterprises.each do |attributes|
-  create_enterprise attributes
+  if attributes['avatar'].present?
+    create_enterprise attributes
+    break
+  end
 end
 
