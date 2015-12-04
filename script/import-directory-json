@@ -12,6 +12,61 @@ class UploadedData
   end
 end
 
+# returns html code of the image, to be inserted
+def download_image image_url, profile
+  description_image = ''
+  m_image_url = /\/\/(?<site>[^\/]+)(?<path>\/.*$)/.match(image_url)
+
+  #download image
+  Net::HTTP.start(m_image_url[:site]) do |http|
+    resp = http.get(m_image_url[:path])
+
+    m_filename = /\/(?<filename>[^\/]*)$/.match(m_image_url[:path])
+    filename = 'download/'+m_filename[:filename]
+    open(filename, "wb") { |file| file.write(resp.body) }
+    mimetype = `file --mime-type -b #{filename}`.gsub(/\n/,"")
+
+    u = UploadedData.new
+    u.size = resp.body.size
+    u.path = filename
+    u.content_type = mimetype
+
+    file = UploadedFile.create!(:uploaded_data => u, :profile => profile, :parent => nil)
+
+    description_image += "<img src=\"#{file.public_filename(:uploaded)}\">"
+  end
+  description_image
+end
+
+#associates profile with image, and returns nothing
+def download_avatar image_url, profile
+  m_avatar = /\/\/(?<site>[^\/]+)(?<path>\/.*$)/.match(image_url)
+
+  #download avatar
+  Net::HTTP.start(m_avatar[:site]) do |http|
+    resp = http.get(m_avatar[:path])
+
+    m_filename = /\/(?<filename>[^\/]*)$/.match(m_avatar[:path])
+    filename = 'download/'+m_filename[:filename]
+    open(filename, "wb") { |file| file.write(resp.body) }
+    mimetype = `file --mime-type -b #{filename}`.gsub(/\n/,"")
+
+    u = UploadedData.new
+    u.size = resp.body.size
+    u.path = filename
+    u.content_type = mimetype
+
+    im = Image.new
+    #im.uploaded_data = ActionController::TestUploadedFile.new(filename, mimetype)
+    im.uploaded_data = u
+    im.save
+    im.create_thumbnails
+    im.save
+    profile.image = im
+    profile.save
+  end
+end
+
 def create_category attributes
   return unless attributes.present?
 
@@ -38,7 +93,7 @@ def create_enterprise attributes
   enterprise = Enterprise.new name: attributes['title'],
     identifier: attributes['title'].to_slug,
     lat: attributes['lat'], lng: attributes['lng'],
-    description: attributes['description'],
+    description: ActionView::Base.full_sanitizer.sanitize(attributes['description_html']).gsub(/^(.{547,}?).*$/m,'\1...'),
     address: attributes['address'],
     contact_phone: attributes['phone']
     
@@ -63,42 +118,53 @@ def create_enterprise attributes
     enterprise.save
 
     if enterprise.errors.count == 0
+      description_images = ''
+
+      #import images in images_params
+      if attributes['detail_images_urls'].present?
+        detail_image_number = 0
+        desc_images_row = ''
+        attributes['detail_images_urls'].each  do |detail_image_url|
+          detail_image_number += 1
+          desc_images_row = '' if detail_image_number.odd?
+          for i in 1..3 #try to download image 3 times
+            begin
+              local_image_url = download_image(detail_image_url, enterprise)
+              desc_images_row += '<div class="col-lg-6 col-md-6 col-sm-6 text-center">'+local_image_url+'</div>'
+              break
+            rescue StandardError => e
+              p "error in downloading image: #{detail_image_url}. Error: #{e.message}" + (i!=3 ? '. will try again' : '')
+            end
+          end
+          description_images += '<div class="row">'+desc_images_row +'</div>' if detail_image_number.even?
+        end
+        description_images = '<p></p>'+description_images
+      end
+
+      #import description
+      a = enterprise.articles.first
+      a.body = (attributes['description_html'] || '') + description_images
+      a.save
 
       if attributes['hits'] != nil and !attributes['hits'].empty?
         enterprise.home_page.hits = attributes['hits'].to_i
-	enterprise.home_page.save
+	      enterprise.home_page.save
       end
 
       #import avatar
       avatar = attributes['avatar']
-      if !avatar.empty?
-        m_avatar = /\/\/(?<site>[^\/]+)(?<path>\/.*$)/.match(avatar)
-
-        #download avatar
-        Net::HTTP.start(m_avatar[:site]) do |http|
-          resp = http.get(m_avatar[:path])
-
-          m_filename = /\/(?<filename>[^\/]*)$/.match(m_avatar[:path])
-          filename = 'download/'+m_filename[:filename]
-          open(filename, "wb") { |file| file.write(resp.body) }
-          mimetype = `file -ib #{filename}`.gsub(/\n/,"")
-
-          u = UploadedData.new
-          u.size = resp.body.size
-          u.path = filename
-          u.content_type = mimetype
-
-          im = Image.new
-          #im.uploaded_data = ActionController::TestUploadedFile.new(filename, mimetype)
-          im.uploaded_data = u
-          im.save
-          enterprise.image = im
-          enterprise.save
-
+      if avatar.present?
+        for i in 1..3 #try to download avatar 3 times
+          begin
+            download_avatar avatar, enterprise
+            break
+          rescue StandardError => e
+            p "error in downloading avatar: #{avatar}. Error: #{e.message}" + (i!=3 ? '. will try again' : '')
+          end
         end
       end
 
-      enterprise.categories = attributes['categories'].map{ |id| 
+      enterprise.categories = attributes['categories'].map{ |id|
         if $categories[id.to_i] != nil
           return $categories[id.to_i]['record']
         else 
@@ -130,9 +196,9 @@ $categories.each do |id, attributes|
   create_category attributes
 end
 Enterprises.each do |attributes|
-  if attributes['avatar'].present?
+  #if attributes['detail_images_urls'].present?
     create_enterprise attributes
-    break
-  end
+  #  break
+  #end
 end
 
