@@ -1,6 +1,6 @@
 open_graph:
-  domain: cirandas.net
-  environment_logo: 'http://cirandas.net/designs/themes/cirandas-responsive/images/cirandas-logo-110.png'
+  domain: ecoalternativo.net
+  environment_logo: 'http://ecoalternativo.net/designs/themes/ecoalternative/images/logo.png'
   namespace: app_cirandas
   types:
     article: article
