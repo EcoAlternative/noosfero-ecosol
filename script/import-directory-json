@@ -72,7 +72,7 @@ def create_category attributes
 
   category = attributes['record']
   unless category
-    parent = create_category $categories[attributes['parent_id']]
+    parent = create_category $categories[attributes['parent_id'].try(:to_i)]
     name = if Category.where(name: attributes['title']).first then attributes['description'] else attributes['title'] end
     begin
       category = Category.new environment: $environment, name: name, parent: parent
@@ -94,9 +94,8 @@ def create_enterprise attributes
     identifier: attributes['title'].to_slug,
     lat: attributes['lat'], lng: attributes['lng'],
     description: ActionView::Base.full_sanitizer.sanitize(attributes['description_html']).gsub(/^(.{547,}?).*$/m,'\1...'),
-    address: attributes['address'],
     contact_phone: attributes['phone']
-    
+
   enterprise[:id] =  attributes['id'].to_i
 
   #p attributes['email']
@@ -105,7 +104,7 @@ def create_enterprise attributes
   enterprise.contact_person = attributes['contact_person_name']
   enterprise.city = attributes['city']
   enterprise.zip_code = attributes['zip_code']
-  
+  enterprise.address = attributes['address']
 
 
   enterprise.created_at = Time.zone.parse(attributes['created_at_gmt'])
@@ -119,6 +118,10 @@ def create_enterprise attributes
 
     if enterprise.errors.count == 0
       description_images = ''
+
+      #sets custom footer
+      enterprise.custom_footer = '<div align="center">{address}<br />{<strong>Tel:</strong> contact_phone} {<strong>e-Mail:</strong> contact_email}</div>'
+      enterprise.save
 
       #import images in images_params
       if attributes['detail_images_urls'].present?
@@ -164,13 +167,16 @@ def create_enterprise attributes
         end
       end
 
-      enterprise.categories = attributes['categories'].map{ |id|
+      cats = attributes['categories'].map do |id|
         if $categories[id.to_i] != nil
-          return $categories[id.to_i]['record']
-        else 
+          $categories[id.to_i]['record']
+        else
           puts "Error category not found: #{id} (enterprise: #{attributes['title']})"
-        end 
-      }
+          nil
+        end
+      end
+
+      enterprise.categories = cats.compact
 
       return enterprise
 
