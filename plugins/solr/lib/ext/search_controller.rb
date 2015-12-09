@@ -8,7 +8,7 @@ SearchController.class_eval do
 
   helper SolrPlugin::SearchHelper
 
-  before_filter :solr_enterprise, only: [:enterprises]
+  #before_filter :solr_enterprise, only: [:enterprises]
 
   protected
 

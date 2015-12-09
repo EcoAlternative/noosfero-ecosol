@@ -114,10 +114,10 @@ class Profile
   end
 
   acts_as_faceted fields: {
-      solr_f_enabled: {
-        label: _('Situation'), type_if: -> (klass) { klass.kind_of? Enterprise },
-        proc: method(:solr_f_enabled_proc).to_proc
-      },
+      #solr_f_enabled: {
+      #  label: _('Situation'), type_if: -> (klass) { klass.kind_of? Enterprise },
+      #  proc: method(:solr_f_enabled_proc).to_proc
+      #},
       solr_f_region: {
         label: c_('City'), type_if: -> (klass) { not klass.kind_of? Community },
         proc: method(:solr_f_region_proc).to_proc,
