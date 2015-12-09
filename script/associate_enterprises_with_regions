@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+
+require_relative '../config/environment'
+
+require 'action_controller'
+
+$regions_in_db = {}
+
+Region.all.each { |region| $regions_in_db[region.name.to_slug] = region }
+
+Enterprise.all.each do |enterprise|
+    unless enterprise.state.nil?
+        enterprise.region = $regions_in_db[enterprise.state.to_slug]
+
+        unless enterprise.region.nil?
+            country_code = ''
+            case enterprise.region.parent.name.to_slug
+              when 'portugal'
+                country_code = 'PT'
+              when 'espana'
+                country_code = 'ES'
+              else
+                country_code = nil
+            end
+            enterprise.country = country_code
+        end
+        enterprise.save
+    end
+end

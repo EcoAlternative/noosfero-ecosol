@@ -67,6 +67,8 @@ def download_avatar image_url, profile
   end
 end
 
+$main_category = nil
+
 def create_category attributes
   return unless attributes.present?
 
@@ -75,6 +77,7 @@ def create_category attributes
     parent = create_category $categories[attributes['parent_id'].try(:to_i)]
     name = if Category.where(name: attributes['title']).first then attributes['description'] else attributes['title'] end
     begin
+      parent = $main_category if parent.nil?
       category = Category.new environment: $environment, name: name, parent: parent
       category[:id] = attributes['id'].to_i
       category.save!
@@ -85,6 +88,36 @@ def create_category attributes
     attributes['record'] = category
   end
   category
+end
+
+$regions = {}
+$regions_in_db = {}
+$main_territory = nil
+$territory_id = 1001
+
+def create_region attributes
+  return unless attributes.present?
+
+  region = attributes['record']
+  unless region
+    parent = create_region $regions[attributes['parent'].try(:to_slug)]
+    name = attributes['title']
+    begin
+      if parent != nil #state
+        region = State.new environment: $environment, name: name, parent: parent
+      else #country
+        region = Region.new environment: $environment, name: name, parent: $main_territory
+      end
+      region[:id] = $territory_id
+      $territory_id += 1
+      region.save!
+    rescue => e
+      puts "Error \"#{e.message}\" on #{attributes.inspect}"
+      exit 1
+    end
+    attributes['record'] = region
+  end
+  region
 end
 
 $categories = {}
@@ -102,9 +135,9 @@ def create_enterprise attributes
   enterprise.organization_website = attributes['website']
   enterprise.contact_email = attributes['email'].try(:strip)
   enterprise.contact_person = attributes['contact_person_name']
-  enterprise.city = attributes['city']
   enterprise.zip_code = attributes['zip_code']
   enterprise.address = attributes['address']
+  enterprise.state = attributes['state']
 
 
   enterprise.created_at = Time.zone.parse(attributes['created_at_gmt'])
@@ -121,6 +154,7 @@ def create_enterprise attributes
 
       #sets custom footer
       enterprise.custom_footer = '<div align="center">{address}<br />{<strong>Tel:</strong> contact_phone} {<strong>e-Mail:</strong> contact_email}</div>'
+
       enterprise.save
 
       #import images in images_params
@@ -191,16 +225,37 @@ end
 
 Categories = JSON.parse File.read ARGV[0]
 Enterprises = JSON.parse File.read ARGV[1]
+Regions = JSON.parse File.read ARGV[2]
 
 Categories.each{ |category| $categories[category['id'].to_i] = category }
+
+Regions.each { |slug ,region| $regions[region['title'].to_slug] = region}
 
 $environment = Environment.default
 
 Time.zone = 'UTC'
 
+#main territory
+$main_territory = create_region({
+                                   'title' => 'Territories'
+                               })
+
+#main category
+$main_category = create_category({
+  'title' => 'Economic Sectors',
+  'id' => 1000
+})
+
 $categories.each do |id, attributes|
   create_category attributes
 end
+
+$regions.each do |slug, attributes|
+  create_region attributes
+end
+
+
+
 Enterprises.each do |attributes|
   #if attributes['detail_images_urls'].present?
     create_enterprise attributes
