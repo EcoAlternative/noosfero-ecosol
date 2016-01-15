@@ -43,6 +43,7 @@ class OrganizationRatingsPluginProfileController < ProfileController
     rating.value = params[:organization_rating_value] if params[:organization_rating_value]
 
     if rating.save
+      @plugins.dispatch(:organization_ratings_plugin_rating_created, rating, params)
       create_rating_comment(rating)
       session[:notice] = _("%s successfully rated!") % profile.name
     else
@@ -53,21 +54,16 @@ class OrganizationRatingsPluginProfileController < ProfileController
   end
 
   def create_rating_comment(rating)
-    if params[:comments]
-        comment_task = CreateOrganizationRatingComment.create!(
-          params[:comments].merge(
-            :requestor => rating.person,
-            :organization_rating_id => rating.id,
-            :target => rating.organization
-          )
+    if params[:comments].present? && params[:comments][:body].present?
+      comment_task = CreateOrganizationRatingComment.create!(
+        params[:comments].merge(
+          :requestor => rating.person,
+          :organization_rating_id => rating.id,
+          :target => rating.organization
         )
-        comment_task.finish if can_perform?(params)
+      )
+      comment_task.finish unless env_organization_ratings_config.are_moderated
     end
-  end
-
-  def can_perform? (params)
-    (params[:comments][:body].blank? ||
-    !env_organization_ratings_config.are_moderated)
   end
 
   def permission
