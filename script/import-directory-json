@@ -2,15 +2,85 @@
 
 require_relative '../config/environment'
 
+require 'action_controller'
+#require 'action_controller/test_process.rb'
+
+class UploadedData
+  attr_accessor :path, :content_type, :size
+  def original_filename
+    File.basename self.path
+  end
+end
+
+# returns html code of the image, to be inserted
+def download_image image_url, profile
+  description_image = ''
+  m_image_url = /\/\/(?<site>[^\/]+)(?<path>\/.*$)/.match(image_url)
+
+  #download image
+  Net::HTTP.start(m_image_url[:site]) do |http|
+    resp = http.get(m_image_url[:path])
+
+    m_filename = /\/(?<filename>[^\/]*)$/.match(m_image_url[:path])
+    filename = 'download/'+m_filename[:filename]
+    open(filename, "wb") { |file| file.write(resp.body) }
+    mimetype = `file --mime-type -b #{filename}`.gsub(/\n/,"")
+
+    u = UploadedData.new
+    u.size = resp.body.size
+    u.path = filename
+    u.content_type = mimetype
+
+    file = UploadedFile.create!(:uploaded_data => u, :profile => profile, :parent => nil)
+
+    description_image += "<img src=\"#{file.public_filename(:uploaded)}\">"
+  end
+  description_image
+end
+
+#associates profile with image, and returns nothing
+def download_avatar image_url, profile
+  m_avatar = /\/\/(?<site>[^\/]+)(?<path>\/.*$)/.match(image_url)
+
+  #download avatar
+  Net::HTTP.start(m_avatar[:site]) do |http|
+    resp = http.get(m_avatar[:path])
+
+    m_filename = /\/(?<filename>[^\/]*)$/.match(m_avatar[:path])
+    filename = 'download/'+m_filename[:filename]
+    open(filename, "wb") { |file| file.write(resp.body) }
+    mimetype = `file --mime-type -b #{filename}`.gsub(/\n/,"")
+
+    u = UploadedData.new
+    u.size = resp.body.size
+    u.path = filename
+    u.content_type = mimetype
+
+    im = Image.new
+    #im.uploaded_data = ActionController::TestUploadedFile.new(filename, mimetype)
+    im.uploaded_data = u
+    im.save
+    im.create_thumbnails
+    im.save
+    profile.image = im
+    profile.save
+  end
+end
+
+$main_category = nil
+
 def create_category attributes
   return unless attributes.present?
 
   category = attributes['record']
   unless category
-    parent = create_category $categories[attributes['parent_id']]
+    parent = create_category $categories[attributes['parent_id'].try(:to_i)]
     name = if Category.where(name: attributes['title']).first then attributes['description'] else attributes['title'] end
     begin
-      category = Category.create! environment: $environment, name: name, parent: parent
+      parent = $main_category if parent.nil?
+      category = Category.new environment: $environment, name: name, parent: parent
+      category[:id] = attributes['id'].to_i
+      category.save!
     rescue => e
       puts "Error \"#{e.message}\" on #{attributes.inspect}"
       exit 1
@@ -20,33 +90,176 @@ def create_category attributes
   category
 end
 
-def create_enterprise attributes
-  enterprise = Enterprise.create! name: attributes['title'],
-    created_at: Time.zone.parse(attributes['created_at_gmt']),
-    lat: attributes['lat'], lng: attributes['lng'],
-    description: attributes['description'],
-    address: attributes['address'],
-    contact_phone: attributes['phone'],
-    contact_email: attributes['email'],
-    organization_website: attributes['website']
+$regions = {}
+$regions_in_db = {}
+$main_territory = nil
+$territory_id = 1001
 
-  enterprise.categories = attributes['categories'].map{ |id| $categories[id]['record'] }
+def create_region attributes
+  return unless attributes.present?
+
+  region = attributes['record']
+  unless region
+    parent = create_region $regions[attributes['parent'].try(:to_slug)]
+    name = attributes['title']
+    begin
+      if parent != nil #state
+        region = State.new environment: $environment, name: name, parent: parent
+      else #country
+        region = Region.new environment: $environment, name: name, parent: $main_territory
+      end
+      region[:id] = $territory_id
+      $territory_id += 1
+      region.save!
+    rescue => e
+      puts "Error \"#{e.message}\" on #{attributes.inspect}"
+      exit 1
+    end
+    attributes['record'] = region
+  end
+  region
+end
+
+$categories = {}
+
+def create_enterprise attributes
+  enterprise = Enterprise.new name: attributes['title'],
+    identifier: attributes['title'].to_slug,
+    lat: attributes['lat'], lng: attributes['lng'],
+    description: ActionView::Base.full_sanitizer.sanitize(attributes['description_html']).gsub(/^(.{547,}?).*$/m,'\1...'),
+    contact_phone: attributes['phone']
+
+  enterprise[:id] =  attributes['id'].to_i
+
+  #p attributes['email']
+  enterprise.organization_website = attributes['website']
+  enterprise.contact_email = attributes['email'].try(:strip)
+  enterprise.contact_person = attributes['contact_person_name']
+  enterprise.zip_code = attributes['zip_code']
+  enterprise.address = attributes['address']
+  enterprise.state = attributes['state']
+
+
+  enterprise.created_at = Time.zone.parse(attributes['created_at_gmt'])
+#  p "attributes"
+#  pp attributes
+#  p "categories"
+
+
+  if enterprise.valid?
+    enterprise.save
+
+    if enterprise.errors.count == 0
+      description_images = ''
+
+      #sets custom footer
+      enterprise.custom_footer = '<div align="center">{address}<br />{<strong>Tel:</strong> contact_phone} {<strong>e-Mail:</strong> contact_email}</div>'
+
+      enterprise.save
+
+      #import images in images_params
+      if attributes['detail_images_urls'].present?
+        detail_image_number = 0
+        desc_images_row = ''
+        attributes['detail_images_urls'].each  do |detail_image_url|
+          detail_image_number += 1
+          desc_images_row = '' if detail_image_number.odd?
+          for i in 1..3 #try to download image 3 times
+            begin
+              local_image_url = download_image(detail_image_url, enterprise)
+              desc_images_row += '<div class="col-lg-6 col-md-6 col-sm-6 text-center">'+local_image_url+'</div>'
+              break
+            rescue StandardError => e
+              p "error in downloading image: #{detail_image_url}. Error: #{e.message}" + (i!=3 ? '. will try again' : '')
+            end
+          end
+          description_images += '<div class="row">'+desc_images_row +'</div>' if detail_image_number.even?
+        end
+        description_images = '<p></p>'+description_images
+      end
+
+      #import description
+      a = enterprise.articles.first
+      a.body = (attributes['description_html'] || '') + description_images
+      a.save
+
+      if attributes['hits'] != nil and !attributes['hits'].empty?
+        enterprise.home_page.hits = attributes['hits'].to_i
+	      enterprise.home_page.save
+      end
+
+      #import avatar
+      avatar = attributes['avatar']
+      if avatar.present?
+        for i in 1..3 #try to download avatar 3 times
+          begin
+            download_avatar avatar, enterprise
+            break
+          rescue StandardError => e
+            p "error in downloading avatar: #{avatar}. Error: #{e.message}" + (i!=3 ? '. will try again' : '')
+          end
+        end
+      end
+
+      cats = attributes['categories'].map do |id|
+        if $categories[id.to_i] != nil
+          $categories[id.to_i]['record']
+        else
+          puts "Error category not found: #{id} (enterprise: #{attributes['title']})"
+          nil
+        end
+      end
+
+      enterprise.categories = cats.compact
+
+      return enterprise
+
+    else
+      p "Could not insert enterprise: " + attributes['title'] + ". Errors: " + enterprise.errors.to_json
+    end
+  else
+    p "Could not insert enterprise: " + attributes['title'] + ". Errors: " + enterprise.errors.to_json
+    return nil
+  end
 end
 
 Categories = JSON.parse File.read ARGV[0]
 Enterprises = JSON.parse File.read ARGV[1]
+Regions = JSON.parse File.read ARGV[2]
 
-$categories = {}
 Categories.each{ |category| $categories[category['id'].to_i] = category }
+
+Regions.each { |slug ,region| $regions[region['title'].to_slug] = region}
 
 $environment = Environment.default
 
 Time.zone = 'UTC'
 
+#main territory
+$main_territory = create_region({
+                                   'title' => 'Territories'
+                               })
+
+#main category
+$main_category = create_category({
+  'title' => 'Economic Sectors',
+  'id' => 1000
+})
+
 $categories.each do |id, attributes|
-  pp create_category attributes
+  create_category attributes
 end
+
+$regions.each do |slug, attributes|
+  create_region attributes
+end
+
+
+
 Enterprises.each do |attributes|
-  #pp create_enterprise attributes
+  #if attributes['detail_images_urls'].present?
+    create_enterprise attributes
+  #  break
+  #end
 end
 
