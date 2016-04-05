@@ -3,9 +3,6 @@ class EnterpriseRegistrationController < ApplicationController
 
   before_filter :login_required
 
-  # CIRANDAS specific: only allow admins to access this
-  protect 'edit_environment_features', :environment
-
   # Just go to the first step.
   #
   # FIXME: shouldn't this action present some sort of welcome message and point
