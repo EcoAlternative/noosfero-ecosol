@@ -3,7 +3,7 @@ class ProductCategory < Category
   has_many :products
   has_many :inputs
 
-  attr_accessible :name, :parent, :environment
+  attr_accessible :name, :parent, :environment, :visible_for_articles, :visible_for_profiles, :choosable, :uuid
 
   scope :unique, :select => 'DISTINCT ON (path) categories.*'
   scope :by_enterprise, -> enterprise {
