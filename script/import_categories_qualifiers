@@ -1,0 +1,67 @@
+#!/usr/bin/env ruby
+
+require_relative '../config/environment'
+
+require 'action_controller'
+require 'csv'
+#require 'action_controller/test_process.rb'
+
+$environment = Environment.default
+$categories = {}
+
+def create_category attributes
+  return unless attributes.present?
+
+  puts attributes.to_json
+
+  category = attributes['record']
+  unless category
+    parent = nil
+    if attributes['parent_id'].present? and attributes['parent_id'] != 'null'
+      parent = create_category($categories[attributes['parent_id']])
+    end
+
+    #name = if ProductCategory.where(name: attributes['title']).first then attributes['description'] else attributes['title'] end
+    begin
+      category = ProductCategory.new environment: $environment, name: attributes['descricao'], parent: parent
+      category[:uuid] = attributes['codigo']
+      category.save!
+    rescue => e
+      puts "Error \"#{e.message}\" on #{attributes.inspect}"
+      exit 1
+    end
+    attributes['record'] = category
+  end
+  category
+end
+
+
+def loadCsvFile fileName
+  csv_text = File.read fileName
+  csv_obj = CSV.parse csv_text, :headers => true
+  csv_obj.map { |row| row.to_hash }
+end
+
+
+Time.zone = 'UTC'
+
+cats_array = loadCsvFile ARGV[0]
+
+cats_array.each do |category|
+  puts category.to_json
+  $categories[category['codigo']] = category
+end
+
+puts "categories:"
+puts $categories.to_json
+$categories.each do |id, attributes|
+  puts "will create category"
+  create_category attributes
+end
+
+
+$qualifiers = loadCsvFile ARGV[1]
+
+$qualifiers.each do |attributes|
+  Qualifier.create({name: attributes['descricao'], environment: $environment, uuid: attributes['codigo'] })
+end
