@@ -80,10 +80,11 @@ class SearchController < PublicController
 
   def products
     @scope = @environment.products.enabled.is_public.includes(
-      :product_category, :unit, :region, :image, {inputs: [:product_category]},
+      :product_category, :unit, :image,
+      {inputs: [:product_category]},
       {product_qualifiers: [:qualifier, :certifier]},
       {price_details: [:production_cost]},
-      {profile: [:domains]},
+      {profile: [:region, :domains]},
     )
     full_text_search
   end
