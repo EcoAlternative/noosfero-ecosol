@@ -134,7 +134,6 @@ group :cucumber do
 end
 
 group :development do
-  gem 'better_errors'
   gem 'wirble'
   #gem 'byebug', platform: :mri
   gem 'html2haml', require: false
