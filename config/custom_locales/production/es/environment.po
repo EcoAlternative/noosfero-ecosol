@@ -49,7 +49,7 @@ msgstr "Articulo con HTML puro"
 
 #: app/models/raw_html_article.rb:12
 msgid "Allows HTML without filter (only for admins)."
-msgstr "Permite HTML sin filtro (sólo para administradores)"
+msgstr "Permite HTML sin filtro (sólo admin)"
 
 #: app/models/text_article.rb:9
 msgid "Article"
