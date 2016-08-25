@@ -137,135 +137,135 @@ msgstr "Su búsqueda devolvió %{number} productos"
 
 #: app/views/box_organizer/edit.html.erb:22
 msgid "Display to users:"
-msgstr "Mostrar às(aos) usuárias(os):"
+msgstr "Mostrar l@s usuari@s:"
 
 #: app/views/box_organizer/_article_block.html.erb:27
 #: app/views/shared/_lead_and_body.html.erb:17
 #: app/views/spam/_suggest_article.html.erb:13
 msgid "Lead"
-msgstr "Prévia (primeiras linhas do artigo)"
+msgstr "Vista previa (primeras líneas del artículo)"
 
 #: app/views/events/events.html.erb:1
 msgid "Events at %s"
-msgstr "Eventos em %s"
+msgstr "Eventos en %s"
 
 #: app/views/cms/_general_fields.html.erb:1
 msgid "Publication date:"
-msgstr "Data de publicação:"
+msgstr "Fecha de publicación:"
 
 #: app/views/profile_editor/_organization.html.erb
 msgid "Internet Address (URL)"
-msgstr "Endereço na internet"
+msgstr "Dirección de internet (url)"
 
 #: app/views/account/index_anonymous.html.erb:10
 msgid "Sign up."
-msgstr "Criar conta."
+msgstr "Regístrate."
 
 #: app/views/layouts/_user.html.erb:18
 msgid "Sign up"
-msgstr "Criar conta"
+msgstr "Regístrate"
 
 #: app/models/moderate_user_registration.rb:29
 #: app/views/account/login.html.erb:29
 #: app/views/account/login_block.html.erb:23
 msgid "New user"
-msgstr "Criar conta"
+msgstr "Regístrate"
 
 #: app/views/manage_products/show.html.erb:58
 msgid "Add product or service"
-msgstr "Adicionar produto ou serviço"
+msgstr "Añadir producto o servicio"
 
 #: app/models/abuse_complaint.rb:36
 msgid "%{linked_subject} was reported due to inappropriate behavior."
-msgstr "%{linked_subject} foi denunciado no Cirandas devido a comportamento inadequado."
+msgstr "%{linked_subject} fue denunciado por comportamiento inadecuado."
 
 #: app/models/abuse_complaint.rb:68
 msgid "%s was reported due to inappropriate behavior."
-msgstr "%s foi denunciado no Cirandas devido a comportamento inadequado."
+msgstr "%s fue denunciado por comportamiento inadecuado."
 
 #: app/models/abuse_complaint.rb:72
 msgid "The users of %{environment} reported %{reported} due to inappropriate behavior. A task was created with all the reports including the reasons and contents reported by these users. Please verify the reports and decide whether this profile must be disabled or not."
-msgstr "%{reported} foi denunciado(a) no %{environment} devido a comportamento inadequado. A tarefa foi criada com todos as denúncias, incluindo os motivos e o conteúdo relatado por usuários(as). Verifique a denúncia e decida se este perfil deve ser desativado ou não."
+msgstr "%{reported} fue denunciad@ en %{environment} por comportamiento inadecuado. Una tarea se ha creado con todos los informes, incluidos los motivos y contenidos reportados por estos usuarios. Por favor, compruebe los informes y decidir si este perfil se debe desactivar o no."
 
 #: app/views/abuse_complaint/_target_notification_message.html.erb
 msgid "An user reported the %{profile_type} %{reported} with the following reason:"
-msgstr "Um usuário denunciou %{reported} (%{profile_type}) com a seguinte justificativa:"
+msgstr "Denuciaron %{reported} (%{profile_type}) por la siguiente razón:"
 
 #: app/models/add_member.rb:25 app/models/add_member.rb
 msgid "%{requestor} wants to be a member of '%{organization}'."
-msgstr "%{requestor} quer ser integrante de '%{organization}'."
+msgstr "%{requestor} quiere ser miembro de '%{organization}'."
 
 #: app/views/profile_editor/index.html.erb:6
 msgid "Personal Control Panel"
-msgstr "Painel de Controle Pessoal"
+msgstr "Panel de control personal"
 
 #: app/models/article.rb:55
 msgid "The title (article name) is already being used by another article, please use another title."
-msgstr "O título (nome do artigo) já está sendo usado por outro artigo, por favor escolha outro título."
+msgstr "El título (nombre del artículo) ya está siendo usado por otro articulo, por favor escoja otro título."
 
 msgid "Slug"
 msgstr "Identificador"
 
 msgid "Interests"
-msgstr "Interesses"
+msgstr "Intereses"
 
 msgid "Download"
-msgstr "Baixar"
+msgstr "Descargar"
 
 msgid "products"
-msgstr "produtos"
+msgstr "productos"
 
 # provisory while these string don't enter core:
 msgid "Searches"
-msgstr "Buscas"
+msgstr "Búsquedas"
 
 msgid "Type words about %s you're looking for"
-msgstr "Escreva palavras sobre %s que você está buscando"
+msgstr "Escriba palabras sobre %s que está buscando"
 
 msgid "the enterprise"
-msgstr "o empreendimento solidário"
+msgstr "La entidad"
 
 msgid "the person"
-msgstr "a pessoa"
+msgstr "La persona"
 
 msgid "the community"
-msgstr "a comunidade"
+msgstr "La comunidad"
 
 msgid "the product"
-msgstr "o produto ou serviço"
+msgstr "el producto o servicio"
 
 msgid "the article"
-msgstr "o conteúdo"
+msgstr "El contenido"
 
 msgid "Show filters"
 msgstr "Mostrar filtros"
 
 msgid "The %{highlighted} fields are mandatory."
-msgstr "Os campos %{highlighted} são obrigatórios."
+msgstr "Los campos %{highlighted} sson obligatorios."
 
 msgid "highlighted"
-msgstr "realçados"
+msgstr "destacados"
 
 msgid "Applied filters"
 msgstr "Filtros aplicados"
 
 msgid "Basket is empty"
-msgstr "Cesto vazio"
+msgstr "Cesta vacía"
 
 msgid "See more options"
-msgstr "Ver mais opções"
+msgstr "Ver más opciones"
 
 msgid "See less options"
-msgstr "Ver menos opções"
+msgstr "Ver menos opciones"
 
 msgid "Please confirm to leave the community '%{name}'"
-msgstr "Por favor confirme para sair da comunidade '%{name}'"
+msgstr "Por favor confirme para salir de la comunidad '%{name}'"
 
 msgid "Presentation and enterprise's catalog"
-msgstr "Apresentação e vitrine do empreendimento"
+msgstr "Presentación y catalogo de la entidad"
 
 msgid "loading..."
-msgstr "carregando..."
+msgstr "cargando..."
 
 #: app/views/cms/_upload_file_form.html.erb:18
 #: app/views/cms/_upload_file_form.html.erb:20
@@ -273,7 +273,7 @@ msgid "Upload"
 msgstr "Enviar"
 
 msgid "Send to all members"
-msgstr "Enviar para todos os membros"
+msgstr "Enviar para todos los membros"
 
 msgid "To:"
 msgstr "Para:"
