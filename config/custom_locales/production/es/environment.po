@@ -1,5 +1,5 @@
 # translation of noosfero.po to
-#
+# prueba de edicion 
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
