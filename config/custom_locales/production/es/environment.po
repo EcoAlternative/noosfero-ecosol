@@ -17,59 +17,59 @@ msgstr ""
 
 #: app/models/uploaded_file.rb:99
 msgid "Uploaded file"
-msgstr "Enviar imagem ou documento"
+msgstr "Enviar imagen o documento"
 
 #: app/models/uploaded_file.rb:103
 msgid "Upload any kind of file you want."
-msgstr "Qualquer arquivo."
+msgstr "Cualquier archivo."
 
 #: app/models/folder.rb:28
 msgid "A folder, inside which you can put other articles."
-msgstr "Serve para você organizar seus conteúdos e arquivos."
+msgstr "Una carpeta, dentro de la cual se puede poner otros artículos."
 
 #: app/models/gallery.rb:12
 msgid "A gallery, inside which you can put images."
-msgstr "Organize suas fotos e imagens!"
+msgstr "Una galería donde organizar tus imagenes."
 
 #: app/views/manage_products/show.html.erb
 msgid "Offered by"
-msgstr "Produzido ou oferecido por"
+msgstr "Ofrecido por"
 
 #: app/views/catalog/_pagination.html.erb
 msgid "Show more"
-msgstr "Ver mais produtos"
+msgstr "Mostrar más"
 
 #: app/models/rss_feed.rb:97
 msgid "Provides a news feed of your more recent articles."
-msgstr "Fornece um feed RSS dos seus conteúdos."
+msgstr "Proporciona un servicio de RSS feed de sus artículos más recientes."
 
 #: app/models/raw_html_article.rb:8
 msgid "Raw HTML text article"
-msgstr "Artigo com HTML puro"
+msgstr "Articulo con HTML puro"
 
 #: app/models/raw_html_article.rb:12
 msgid "Allows HTML without filter (only for admins)."
-msgstr "Para administradores - use com cautela!"
+msgstr "Permite HTML sin filtro (sólo para administradores)"
 
 #: app/models/text_article.rb:9
 msgid "Article"
-msgstr "Artigo"
+msgstr "Articulo"
 
 #: app/models/tiny_mce_article.rb:8
 msgid "Add a new text article."
-msgstr "Adicione um novo artigo de texto."
+msgstr "Añadir un nuevo artículo de texto."
 
 #: app/models/textile_article.rb:4
 msgid "Text article for people with visual impairement"
-msgstr "Artigo para pessoas com deficiência visual"
+msgstr "Artículo para las personas con discapacidad visual"
 
 #: app/models/textile_article.rb:8
 msgid "Textile format."
-msgstr "Formato textile."
+msgstr "Formato textil."
 
 #: app/models/blog.rb:24
 msgid "A blog, inside which you can put other articles."
-msgstr "Um blog onde você pode postar conteúdos."
+msgstr "Un blog, en cuyo interior se puede poner otros artículos."
 
 #:catalog
 msgid "order by"
@@ -77,39 +77,39 @@ msgstr "ordenar por"
 
 #:catalog
 msgid "Lowest price"
-msgstr "Menor preço"
+msgstr "Menor precio"
 
 #:catalog
 msgid "Newest"
-msgstr "Mais recentes"
+msgstr "Más recientes"
 
 #:catalog
 msgid "Last updated"
-msgstr "Últimas atualizações"
+msgstr "Últimas atualizaciones"
 
 #: app/helpers/application_helper.rb
 msgid "All people"
-msgstr "Todas e todos"
+msgstr "Todas las personas"
 
 #: app/helpers/application_helper.rb
 msgid "All contents"
-msgstr "Todos os conteúdos"
+msgstr "Todos los contenidos"
 
 #: app/helpers/application_helper.rb
 msgid "All communities"
-msgstr "Todas as comunidades"
+msgstr "Todas las comunidades"
 
 #: app/helpers/application_helper.rb:1294
 msgid ""
 "Are you sure that you want to remove the folder \"%s\"? Note that all the "
 "items inside it will also be removed!"
 msgstr ""
-"Tem certeza que quer excluir a pasta \"%s\"? Perceba que todos os itens dentro "
-"dela também serão removidos!"
+"Estas seguro que quieres eliminar la carpeta \"%s\"? Sepa que todos los items dentro "
+"serán también eliminados!"
 
 #: app/helpers/application_helper.rb:1296
 msgid "Are you sure that you want to remove the item \"%s\"?"
-msgstr "Tem certeza que quer excluir o ítem \"%s\"?"
+msgstr "Estas segur@ que quieres eliminar este item \"%s\"?"
 
 #: app/views/catalog/_product.html.erb
 msgid "By"
@@ -117,11 +117,11 @@ msgstr "Por"
 
 #: /app/views/catalog/_form.html.erb:119
 msgid "All categories"
-msgstr "Todas as categorias"
+msgstr "Todas las categorias"
 
 #: /app/views/catalog/_form.html.erb:119
 msgid "All qualifiers"
-msgstr "Todos os qualificadores"
+msgstr "Todos los calificadores"
 
 #: /app/views/catalog/_form.html.erb:119
 msgid "type your search..."
@@ -129,11 +129,11 @@ msgstr "buscar..."
 
 #: app/views/catalog/_results.html.erb:119
 msgid "<b>Total:</b> %{number} products"
-msgstr "<b>Total:</b> %{number} produtos"
+msgstr "<b>Total:</b> %{number} productos"
 
 #: app/views/catalog/_results.html.erb:119
 msgid "Your search returned %{number} products"
-msgstr "Sua busca resultou em %{number} produtos"
+msgstr "Su búsqueda devolvió %{number} productos"
 
 #: app/views/box_organizer/edit.html.erb:22
 msgid "Display to users:"
