@@ -311,3 +311,8 @@ $fa-font-path: "fonts";
 .icon-love:before {
   @extend .fa-heart:before;
 }
+
+// New icon for "about us"
+.icon-about-us:before {
+  @extend .fa-question-circle:before;
+}
