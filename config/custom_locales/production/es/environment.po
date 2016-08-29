@@ -278,3 +278,18 @@ msgstr "Enviar para todos los membros"
 msgid "To:"
 msgstr "Para:"
 
+#page_title
+msgid "Part of network"
+msgstr "Pertenece a la red"
+
+#navigation.html
+msgid "About"
+msgstr "Sobre"
+
+msgid "About us"
+msgstr "Sobre nosotras"
+
+msgid "Principles sheet"
+msgstr "Carta de princípios"
+
+
