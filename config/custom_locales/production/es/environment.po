@@ -289,7 +289,7 @@ msgstr "Sobre"
 msgid "About us"
 msgstr "Sobre nosotras"
 
-msgid "Principles sheet"
+msgid "Principles Sheet"
 msgstr "Carta de princípios"
 
 
